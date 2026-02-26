@@ -130,6 +130,12 @@ header {
   font-weight: 500;
 }
 
+.price {
+  margin-top: 10px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
 button {
   background: #111;
   color: white;
@@ -186,6 +192,17 @@ footer {
 </footer>
 
 <script>
+const fallbackPrices = {
+  "https://buy.stripe.com/7sY9ATgRjdZm5OTa3m3Nm04": "$5.00",
+  "https://buy.stripe.com/9B6bJ144x1cAgtx1wQ3Nm07": "$7.00",
+  "https://buy.stripe.com/3cI9AT58BbRe7X1cbu3Nm08": "$5.00",
+  "https://buy.stripe.com/fZueVd44x9J6b9dcbu3Nm01": "$7.00",
+  "https://buy.stripe.com/bJe00j0SldZm4KP1wQ3Nm03": "$5.00",
+  "https://buy.stripe.com/dRmeVd8kN3kIb9d8Zi3Nm02": "$7.00",
+  "https://buy.stripe.com/28EaEX0SlcVia590sM3Nm06": "$5.00",
+  "https://buy.stripe.com/aFa5kD6cFf3qa597Ve3Nm05": "$7.00"
+};
+
 const products = [
   { name: "Dog art", image: "2026_2-8_Dog_WPM.pdf", customizable: false, url: "https://buy.stripe.com/7sY9ATgRjdZm5OTa3m3Nm04" },
   { name: "Dog art (customizable)", image: "2026_2-8_Dog_WPM.pdf", customizable: true, url: "https://buy.stripe.com/9B6bJ144x1cAgtx1wQ3Nm07" },
@@ -199,6 +216,56 @@ const products = [
 
 const container = document.getElementById("productContainer");
 
+const priceCache = new Map();
+
+const parseLowestDisplayedPrice = (text) => {
+  const matches = text.match(/\$\s*\d+(?:\.\d{2})?/g) || [];
+  const numeric = matches
+    .map(item => Number(item.replace(/[^\d.]/g, "")))
+    .filter(value => Number.isFinite(value));
+
+  if (!numeric.length) {
+    return null;
+  }
+
+  const lowest = Math.min(...numeric);
+  return `$${lowest.toFixed(2)}`;
+};
+
+const fetchLiveStripePrice = async (paymentLink) => {
+  if (priceCache.has(paymentLink)) {
+    return priceCache.get(paymentLink);
+  }
+
+  try {
+    const proxyUrl = `https://r.jina.ai/http://${paymentLink.replace(/^https?:\/\//, "")}`;
+    const response = await fetch(proxyUrl);
+
+    if (!response.ok) {
+      throw new Error(`Could not load Stripe checkout page (${response.status})`);
+    }
+
+    const checkoutText = await response.text();
+    const livePrice = parseLowestDisplayedPrice(checkoutText);
+
+    if (livePrice) {
+      priceCache.set(paymentLink, livePrice);
+      return livePrice;
+    }
+  } catch (error) {
+    console.warn(`Falling back to saved price for ${paymentLink}`, error);
+  }
+
+  const fallbackPrice = fallbackPrices[paymentLink] || "Price at checkout";
+  priceCache.set(paymentLink, fallbackPrice);
+  return fallbackPrice;
+};
+
+const updateCardPrice = async (product, priceElement) => {
+  const price = await fetchLiveStripePrice(product.url);
+  priceElement.textContent = price;
+};
+
 products.forEach(product => {
   const card = document.createElement("div");
   card.className = "card";
@@ -209,10 +276,14 @@ products.forEach(product => {
       <img src="${product.image}" alt="${product.name}">
     </div>
     <h2>${product.name}</h2>
+    <p class="price">Loading price...</p>
     <button onclick="window.location.href='${product.url}'">Purchase</button>
   `;
 
   container.appendChild(card);
+
+  const priceElement = card.querySelector(".price");
+  updateCardPrice(product, priceElement);
 });
 </script>
 
