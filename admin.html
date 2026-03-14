@@ -201,7 +201,9 @@ footer {
 
 <script>
 const ADMIN_TOKEN_KEY = 'beyouartAdminApiToken';
+const MAX_PASSWORD_LENGTH = 20;
 let input = '';
+let isCheckingPassword = false;
 
 const passwordDisplay = document.getElementById('passwordDisplay');
 const errorMessage = document.getElementById('errorMessage');
@@ -298,7 +300,34 @@ const showLoginPanel = () => {
   loginPanel.style.display = 'block';
 };
 
+const setCheckingState = (checking) => {
+  isCheckingPassword = checking;
+  enterButton.disabled = checking;
+};
+
+const appendDigit = (digit) => {
+  if (isCheckingPassword || input.length >= MAX_PASSWORD_LENGTH) {
+    return;
+  }
+
+  input += digit;
+  errorMessage.textContent = '';
+  statusMessage.textContent = '';
+  updateDisplay();
+};
+
 const unlockAdmin = async () => {
+  if (isCheckingPassword) {
+    return;
+  }
+
+  if (!input) {
+    errorMessage.textContent = 'Enter your admin password first.';
+    statusMessage.textContent = '';
+    return;
+  }
+
+  setCheckingState(true);
   statusMessage.textContent = 'Checking password...';
   errorMessage.textContent = '';
 
@@ -327,6 +356,8 @@ const unlockAdmin = async () => {
   } catch (error) {
     errorMessage.textContent = 'Could not reach backend.';
     statusMessage.textContent = '';
+  } finally {
+    setCheckingState(false);
   }
 };
 
@@ -335,17 +366,16 @@ const unlockAdmin = async () => {
   button.type = 'button';
   button.textContent = digit;
   button.addEventListener('click', () => {
-    if (input.length < 20) {
-      input += digit;
-      errorMessage.textContent = '';
-      statusMessage.textContent = '';
-      updateDisplay();
-    }
+    appendDigit(digit);
   });
   keypad.appendChild(button);
 });
 
 clearButton.addEventListener('click', () => {
+  if (isCheckingPassword) {
+    return;
+  }
+
   input = '';
   errorMessage.textContent = '';
   statusMessage.textContent = '';
@@ -353,6 +383,29 @@ clearButton.addEventListener('click', () => {
 });
 
 enterButton.addEventListener('click', unlockAdmin);
+
+document.addEventListener('keydown', (event) => {
+  if (loginPanel.style.display === 'none') {
+    return;
+  }
+
+  if (/^[0-9]$/.test(event.key)) {
+    appendDigit(event.key);
+    return;
+  }
+
+  if (event.key === 'Backspace' && !isCheckingPassword) {
+    input = input.slice(0, -1);
+    errorMessage.textContent = '';
+    statusMessage.textContent = '';
+    updateDisplay();
+    return;
+  }
+
+  if (event.key === 'Enter') {
+    unlockAdmin();
+  }
+});
 
 (async () => {
   updateDisplay();
