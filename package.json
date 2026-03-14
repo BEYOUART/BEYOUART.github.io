@@ -1,0 +1,9 @@
+{
+  "name": "beyouart-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "beyouart site with backend visitor tracking and admin auth",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
