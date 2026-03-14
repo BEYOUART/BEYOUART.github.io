@@ -10,41 +10,13 @@ const PUBLIC_DIR = __dirname;
 const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'visitors.json');
 
-const DEFAULT_BLOCKED_PASSWORDS = new Set(['68952026']);
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const ADMIN_PASSWORD_HASH_HEX = process.env.ADMIN_PASSWORD_HASH;
 
-const parseHashHex = (value) => {
-  if (!value || typeof value !== 'string') {
-    return null;
-  }
+if (!ADMIN_PASSWORD) {
+  throw new Error('ADMIN_PASSWORD must be set in environment variables.');
+}
 
-  const trimmed = value.trim().toLowerCase();
-  if (!/^[a-f0-9]{64}$/.test(trimmed)) {
-    throw new Error('ADMIN_PASSWORD_HASH must be a 64-character SHA-256 hex string.');
-  }
-
-  return Buffer.from(trimmed, 'hex');
-};
-
-const getAdminHash = () => {
-  const configuredHash = parseHashHex(ADMIN_PASSWORD_HASH_HEX);
-  if (configuredHash) {
-    return configuredHash;
-  }
-
-  if (!ADMIN_PASSWORD) {
-    throw new Error('Set ADMIN_PASSWORD_HASH (preferred) or ADMIN_PASSWORD in environment variables.');
-  }
-
-  if (DEFAULT_BLOCKED_PASSWORDS.has(ADMIN_PASSWORD)) {
-    throw new Error('ADMIN_PASSWORD is blocked. Choose a new secret password.');
-  }
-
-  return crypto.createHash('sha256').update(ADMIN_PASSWORD).digest();
-};
-
-const ADMIN_HASH = getAdminHash();
+const ADMIN_HASH = crypto.createHash('sha256').update(ADMIN_PASSWORD).digest();
 const SESSION_TTL_MS = 10 * 60 * 1000;
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MS = 5 * 60 * 1000;
