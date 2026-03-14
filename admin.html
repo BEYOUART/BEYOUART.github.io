@@ -71,11 +71,20 @@ h1 { font-size: 28px; text-align: center; margin-bottom: 16px; }
   border: 1px solid rgba(0,0,0,0.12);
   border-radius: 14px;
   padding: 14px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
   font-size: 26px;
   text-align: center;
   letter-spacing: 8px;
   min-height: 60px;
+}
+
+#passwordInput {
+  width: 100%;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 16px;
+  margin-bottom: 14px;
 }
 
 .keypad {
@@ -165,8 +174,9 @@ footer {
 <main class="main">
   <section id="loginPanel" class="card">
     <h1>Admin Access</h1>
-    <p class="subtitle">Enter password using the keypad.</p>
+    <p class="subtitle">Enter your admin password (type it or use the keypad).</p>
     <div id="passwordDisplay" class="display"></div>
+    <input id="passwordInput" type="password" autocomplete="current-password" placeholder="Type admin password" maxlength="128">
 
     <div class="keypad" id="keypad"></div>
 
@@ -206,6 +216,7 @@ let input = '';
 let isCheckingPassword = false;
 
 const passwordDisplay = document.getElementById('passwordDisplay');
+const passwordInput = document.getElementById('passwordInput');
 const errorMessage = document.getElementById('errorMessage');
 const statusMessage = document.getElementById('statusMessage');
 const keypad = document.getElementById('keypad');
@@ -221,6 +232,7 @@ const clearToken = () => sessionStorage.removeItem(ADMIN_TOKEN_KEY);
 
 const updateDisplay = () => {
   passwordDisplay.textContent = input ? '• '.repeat(input.length).trim() : 'Enter password';
+  passwordInput.value = input;
 };
 
 const renderNoDataRow = (message) => {
@@ -298,6 +310,30 @@ const showAdminPanel = () => {
 const showLoginPanel = () => {
   adminPanel.style.display = 'none';
   loginPanel.style.display = 'block';
+  passwordInput.focus();
+};
+
+const setCheckingState = (checking) => {
+  isCheckingPassword = checking;
+  enterButton.disabled = checking;
+  passwordInput.disabled = checking;
+};
+
+const appendDigit = (digit) => {
+  if (isCheckingPassword) {
+    return;
+  }
+
+  if (input.length >= MAX_PASSWORD_LENGTH) {
+    errorMessage.textContent = `Password is limited to ${MAX_PASSWORD_LENGTH} characters.`;
+    statusMessage.textContent = '';
+    return;
+  }
+
+  input += digit;
+  errorMessage.textContent = '';
+  statusMessage.textContent = '';
+  updateDisplay();
 };
 
 const setCheckingState = (checking) => {
@@ -390,31 +426,27 @@ clearButton.addEventListener('click', () => {
 
 enterButton.addEventListener('click', unlockAdmin);
 
-document.addEventListener('keydown', (event) => {
-  if (loginPanel.style.display === 'none') {
+passwordInput.addEventListener('input', (event) => {
+  if (isCheckingPassword) {
     return;
   }
 
-  if (/^[0-9]$/.test(event.key)) {
-    appendDigit(event.key);
-    return;
-  }
+  input = event.target.value.slice(0, MAX_PASSWORD_LENGTH);
+  errorMessage.textContent = '';
+  statusMessage.textContent = '';
+  updateDisplay();
+});
 
-  if (event.key === 'Backspace' && !isCheckingPassword) {
-    input = input.slice(0, -1);
-    errorMessage.textContent = '';
-    statusMessage.textContent = '';
-    updateDisplay();
-    return;
-  }
-
+passwordInput.addEventListener('keydown', (event) => {
   if (event.key === 'Enter') {
+    event.preventDefault();
     unlockAdmin();
   }
 });
 
 (async () => {
   updateDisplay();
+  passwordInput.focus();
   const hasSession = await loadIpTable();
   if (hasSession) {
     showAdminPanel();
