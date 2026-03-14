@@ -319,26 +319,17 @@ const setCheckingState = (checking) => {
   passwordInput.disabled = checking;
 };
 
-const appendDigit = (digit) => {
-  if (isCheckingPassword) {
+
+const bindButtonPress = (button, handler) => {
+  if (window.PointerEvent) {
+    button.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      handler();
+    });
     return;
   }
 
-  if (input.length >= MAX_PASSWORD_LENGTH) {
-    errorMessage.textContent = `Password is limited to ${MAX_PASSWORD_LENGTH} characters.`;
-    statusMessage.textContent = '';
-    return;
-  }
-
-  input += digit;
-  errorMessage.textContent = '';
-  statusMessage.textContent = '';
-  updateDisplay();
-};
-
-const setCheckingState = (checking) => {
-  isCheckingPassword = checking;
-  enterButton.disabled = checking;
+  button.addEventListener('click', handler);
 };
 
 const appendDigit = (digit) => {
@@ -407,13 +398,13 @@ const unlockAdmin = async () => {
   const button = document.createElement('button');
   button.type = 'button';
   button.textContent = digit;
-  button.addEventListener('click', () => {
+  bindButtonPress(button, () => {
     appendDigit(digit);
   });
   keypad.appendChild(button);
 });
 
-clearButton.addEventListener('click', () => {
+bindButtonPress(clearButton, () => {
   if (isCheckingPassword) {
     return;
   }
@@ -424,7 +415,25 @@ clearButton.addEventListener('click', () => {
   updateDisplay();
 });
 
-enterButton.addEventListener('click', unlockAdmin);
+bindButtonPress(enterButton, unlockAdmin);
+
+passwordInput.addEventListener('input', (event) => {
+  if (isCheckingPassword) {
+    return;
+  }
+
+  input = event.target.value.slice(0, MAX_PASSWORD_LENGTH);
+  errorMessage.textContent = '';
+  statusMessage.textContent = '';
+  updateDisplay();
+});
+
+passwordInput.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault();
+    unlockAdmin();
+  }
+});
 
 passwordInput.addEventListener('input', (event) => {
   if (isCheckingPassword) {
