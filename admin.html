@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · beyouart</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #ffffff;
+  color: #111;
+}
+
+nav {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.nav-inner {
+  max-width: 1100px;
+  margin: auto;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+}
+
+nav a {
+  text-decoration: none;
+  color: #111;
+  font-size: 13px;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+nav a:hover { opacity: 1; }
+
+.main {
+  max-width: 900px;
+  margin: 60px auto 100px;
+  padding: 0 20px;
+}
+
+.card {
+  max-width: 640px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  padding: 28px;
+}
+
+h1 { font-size: 28px; text-align: center; margin-bottom: 16px; }
+
+.subtitle {
+  font-size: 14px;
+  text-align: center;
+  opacity: 0.8;
+  margin-bottom: 18px;
+}
+
+.display {
+  width: 100%;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 14px;
+  font-size: 26px;
+  text-align: center;
+  letter-spacing: 8px;
+  min-height: 60px;
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.keypad button {
+  border: none;
+  border-radius: 14px;
+  padding: 16px;
+  background: #111;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.keypad button:hover { background: #333; }
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.actions button {
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+  cursor: pointer;
+}
+
+#errorMessage {
+  margin-top: 12px;
+  color: #b00020;
+  text-align: center;
+  min-height: 20px;
+}
+
+#statusMessage {
+  margin-top: 4px;
+  text-align: center;
+  min-height: 20px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+#adminPanel { display: none; }
+
+.table-wrap { overflow-x: auto; margin-top: 16px; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+  text-align: left;
+  padding: 12px;
+  font-size: 14px;
+}
+
+.note { margin-top: 16px; font-size: 13px; opacity: 0.7; }
+
+footer {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html">HOME</a>
+    <a href="about.html">ABOUT ME</a>
+    <a href="contact.html">CONTACT</a>
+    <a href="admin.html">ADMIN</a>
+  </div>
+</nav>
+
+<main class="main">
+  <section id="loginPanel" class="card">
+    <h1>Admin Access</h1>
+    <p class="subtitle">Enter password using the keypad.</p>
+    <div id="passwordDisplay" class="display"></div>
+
+    <div class="keypad" id="keypad"></div>
+
+    <div class="actions">
+      <button id="clearButton" type="button">Clear</button>
+      <button id="enterButton" type="button">Enter</button>
+    </div>
+
+    <p id="errorMessage"></p>
+    <p id="statusMessage"></p>
+  </section>
+
+  <section id="adminPanel" class="card">
+    <h1>Visitor IP Addresses</h1>
+    <p class="subtitle">Last-used timestamp for each saved IP.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>IP Address</th>
+            <th>Last Used</th>
+          </tr>
+        </thead>
+        <tbody id="ipTableBody"></tbody>
+      </table>
+    </div>
+    <p class="note">Security note: this page reads protected visitor data from the backend API.</p>
+  </section>
+</main>
+
+<footer>© 2026 beyouart · All rights reserved</footer>
+
+<script src="tracker.js"></script>
+<script>
+const ADMIN_TOKEN_KEY = 'beyouartAdminApiToken';
+let input = '';
+
+const passwordDisplay = document.getElementById('passwordDisplay');
+const errorMessage = document.getElementById('errorMessage');
+const statusMessage = document.getElementById('statusMessage');
+const keypad = document.getElementById('keypad');
+const clearButton = document.getElementById('clearButton');
+const enterButton = document.getElementById('enterButton');
+const loginPanel = document.getElementById('loginPanel');
+const adminPanel = document.getElementById('adminPanel');
+const ipTableBody = document.getElementById('ipTableBody');
+
+const getToken = () => sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
+const setToken = (token) => sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
+const clearToken = () => sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+
+const updateDisplay = () => {
+  passwordDisplay.textContent = input ? '• '.repeat(input.length).trim() : 'Enter password';
+};
+
+const renderNoDataRow = (message) => {
+  ipTableBody.innerHTML = '';
+  const row = document.createElement('tr');
+  const cell = document.createElement('td');
+  cell.colSpan = 2;
+  cell.textContent = message;
+  row.appendChild(cell);
+  ipTableBody.appendChild(row);
+};
+
+const loadIpTable = async () => {
+  const token = getToken();
+  if (!token) {
+    return false;
+  }
+
+  try {
+    const response = await fetch('/api/admin/visitors', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      cache: 'no-store'
+    });
+
+    if (response.status === 401) {
+      clearToken();
+      return false;
+    }
+
+    if (!response.ok) {
+      renderNoDataRow('Could not load visitor records.');
+      return true;
+    }
+
+    const payload = await response.json();
+    const visitors = Array.isArray(payload.visitors) ? payload.visitors : [];
+
+    if (!visitors.length) {
+      renderNoDataRow('No visit records yet.');
+      return true;
+    }
+
+    ipTableBody.innerHTML = '';
+    visitors.forEach((entry) => {
+      const row = document.createElement('tr');
+      const ipCell = document.createElement('td');
+      const timeCell = document.createElement('td');
+
+      ipCell.textContent = entry.ip || 'Unknown';
+      timeCell.textContent = entry.lastUsed ? new Date(entry.lastUsed).toLocaleString() : 'Unknown';
+
+      row.appendChild(ipCell);
+      row.appendChild(timeCell);
+      ipTableBody.appendChild(row);
+    });
+
+    return true;
+  } catch (error) {
+    renderNoDataRow('Could not connect to backend.');
+    return true;
+  }
+};
+
+const showAdminPanel = () => {
+  errorMessage.textContent = '';
+  statusMessage.textContent = '';
+  input = '';
+  updateDisplay();
+  loginPanel.style.display = 'none';
+  adminPanel.style.display = 'block';
+};
+
+const showLoginPanel = () => {
+  adminPanel.style.display = 'none';
+  loginPanel.style.display = 'block';
+};
+
+const unlockAdmin = async () => {
+  statusMessage.textContent = 'Checking password...';
+  errorMessage.textContent = '';
+
+  try {
+    const response = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ password: input })
+    });
+
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      errorMessage.textContent = payload.error || 'Access denied.';
+      statusMessage.textContent = '';
+      input = '';
+      updateDisplay();
+      return;
+    }
+
+    setToken(payload.token);
+    showAdminPanel();
+    await loadIpTable();
+  } catch (error) {
+    errorMessage.textContent = 'Could not reach backend.';
+    statusMessage.textContent = '';
+  }
+};
+
+['1','2','3','4','5','6','7','8','9','0'].forEach((digit) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = digit;
+  button.addEventListener('click', () => {
+    if (input.length < 20) {
+      input += digit;
+      errorMessage.textContent = '';
+      statusMessage.textContent = '';
+      updateDisplay();
+    }
+  });
+  keypad.appendChild(button);
+});
+
+clearButton.addEventListener('click', () => {
+  input = '';
+  errorMessage.textContent = '';
+  statusMessage.textContent = '';
+  updateDisplay();
+});
+
+enterButton.addEventListener('click', unlockAdmin);
+
+(async () => {
+  updateDisplay();
+  const hasSession = await loadIpTable();
+  if (hasSession) {
+    showAdminPanel();
+  } else {
+    showLoginPanel();
+  }
+})();
+</script>
+</body>
+</html>
