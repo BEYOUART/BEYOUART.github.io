@@ -29,12 +29,26 @@ const parseHashHex = (value) => {
 
 const getAdminHash = () => {
   const configuredHash = parseHashHex(ADMIN_PASSWORD_HASH_HEX);
-  if (configuredHash) {
+
+  if (!configuredHash && !ADMIN_PASSWORD) {
+    throw new Error('Set ADMIN_PASSWORD_HASH (preferred) or ADMIN_PASSWORD in environment variables.');
+  }
+
+  if (configuredHash && ADMIN_PASSWORD) {
+    if (DEFAULT_BLOCKED_PASSWORDS.has(ADMIN_PASSWORD)) {
+      throw new Error('ADMIN_PASSWORD is blocked. Choose a new secret password.');
+    }
+
+    const passwordHash = crypto.createHash('sha256').update(ADMIN_PASSWORD).digest();
+    if (!crypto.timingSafeEqual(passwordHash, configuredHash)) {
+      throw new Error('ADMIN_PASSWORD and ADMIN_PASSWORD_HASH are both set but do not match. Update one so they match.');
+    }
+
     return configuredHash;
   }
 
-  if (!ADMIN_PASSWORD) {
-    throw new Error('Set ADMIN_PASSWORD_HASH (preferred) or ADMIN_PASSWORD in environment variables.');
+  if (configuredHash) {
+    return configuredHash;
   }
 
   if (DEFAULT_BLOCKED_PASSWORDS.has(ADMIN_PASSWORD)) {
