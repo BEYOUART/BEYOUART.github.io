@@ -336,6 +336,28 @@ const appendDigit = (digit) => {
   updateDisplay();
 };
 
+const setCheckingState = (checking) => {
+  isCheckingPassword = checking;
+  enterButton.disabled = checking;
+};
+
+const appendDigit = (digit) => {
+  if (isCheckingPassword) {
+    return;
+  }
+
+  if (input.length >= MAX_PASSWORD_LENGTH) {
+    errorMessage.textContent = `Password is limited to ${MAX_PASSWORD_LENGTH} characters.`;
+    statusMessage.textContent = '';
+    return;
+  }
+
+  input += digit;
+  errorMessage.textContent = '';
+  statusMessage.textContent = '';
+  updateDisplay();
+};
+
 const unlockAdmin = async () => {
   if (isCheckingPassword) {
     return;
