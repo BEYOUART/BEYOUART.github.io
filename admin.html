@@ -127,6 +127,7 @@ h1 { font-size: 28px; text-align: center; margin-bottom: 16px; }
 }
 
 #adminPanel { display: none; }
+#constructionPanel { display: none; }
 
 .table-wrap { overflow-x: auto; margin-top: 16px; }
 
@@ -195,6 +196,12 @@ footer {
     </div>
     <p class="note">Security note: this page reads protected visitor data from the backend API.</p>
   </section>
+
+  <section id="constructionPanel" class="card">
+    <h1>Admin Portal</h1>
+    <p class="subtitle">Under construction.</p>
+    <p class="note">This view is unlocked with the second code and does not call the backend.</p>
+  </section>
 </main>
 
 <footer>© 2026 beyouart · All rights reserved</footer>
@@ -202,6 +209,7 @@ footer {
 <script src="tracker.js"></script>
 <script>
 const ADMIN_TOKEN_KEY = 'beyouartAdminApiToken';
+const SECONDARY_PORTAL_CODE = '22222';
 let input = '';
 
 const passwordDisplay = document.getElementById('passwordDisplay');
@@ -212,6 +220,7 @@ const clearButton = document.getElementById('clearButton');
 const enterButton = document.getElementById('enterButton');
 const loginPanel = document.getElementById('loginPanel');
 const adminPanel = document.getElementById('adminPanel');
+const constructionPanel = document.getElementById('constructionPanel');
 const ipTableBody = document.getElementById('ipTableBody');
 
 const getToken = () => sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
@@ -291,6 +300,23 @@ const showAdminPanel = () => {
   input = '';
   updateDisplay();
   loginPanel.style.display = 'none';
+  constructionPanel.style.display = 'none';
+  adminPanel.style.display = 'block';
+};
+
+const showConstructionPanel = () => {
+  errorMessage.textContent = '';
+  statusMessage.textContent = '';
+  input = '';
+  updateDisplay();
+  loginPanel.style.display = 'none';
+  adminPanel.style.display = 'none';
+  constructionPanel.style.display = 'block';
+};
+
+const showLoginPanel = () => {
+  adminPanel.style.display = 'none';
+  constructionPanel.style.display = 'none';
   adminPanel.style.display = 'block';
 };
 
@@ -300,6 +326,12 @@ const showLoginPanel = () => {
 };
 
 const unlockAdmin = async () => {
+  if (input === SECONDARY_PORTAL_CODE) {
+    clearToken();
+    showConstructionPanel();
+    return;
+  }
+
   statusMessage.textContent = 'Checking password...';
   errorMessage.textContent = '';
 
