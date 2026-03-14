@@ -1,1 +1,3 @@
-# No ignore rules required for static site.
+data/
+node_modules/
+.env
