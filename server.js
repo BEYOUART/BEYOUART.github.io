@@ -5,8 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const HOST = process.env.HOST || '0.0.0.0';
-// Default to port 80 so the site runs on the standard HTTP port unless overridden.
-const PORT = Number(process.env.PORT || 80);
+const PORT = Number(process.env.PORT || 8000);
 const PUBLIC_DIR = __dirname;
 const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'visitors.json');
