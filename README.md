@@ -22,6 +22,7 @@ By default this runs on `http://localhost:8000`.
 
 - `ADMIN_PASSWORD_HASH` (**preferred**): SHA-256 hex of your admin password.
 - `ADMIN_PASSWORD` (optional fallback): plaintext admin password.
+- If both `ADMIN_PASSWORD_HASH` and `ADMIN_PASSWORD` are set, they must match the same password or startup will fail with a clear error.
 - `PORT` (optional): server port (default `8000`)
 - `HOST` (optional): bind host (default `0.0.0.0`)
 
