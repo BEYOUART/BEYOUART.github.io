@@ -127,7 +127,6 @@ h1 { font-size: 28px; text-align: center; margin-bottom: 16px; }
 }
 
 #adminPanel { display: none; }
-#constructionPanel { display: none; }
 
 .table-wrap { overflow-x: auto; margin-top: 16px; }
 
@@ -166,7 +165,7 @@ footer {
 <main class="main">
   <section id="loginPanel" class="card">
     <h1>Admin Access</h1>
-    <p class="subtitle">Enter password using the keypad. Enter 22222 to open the under-construction portal.</p>
+    <p class="subtitle">Enter password using the keypad.</p>
     <div id="passwordDisplay" class="display"></div>
 
     <div class="keypad" id="keypad"></div>
@@ -196,20 +195,15 @@ footer {
     </div>
     <p class="note">Security note: this page reads protected visitor data from the backend API.</p>
   </section>
-
-  <section id="constructionPanel" class="card">
-    <h1>Admin Portal</h1>
-    <p class="subtitle">Under construction.</p>
-    <p class="note">This view is unlocked with the second code and does not call the backend.</p>
-  </section>
 </main>
 
 <footer>© 2026 beyouart · All rights reserved</footer>
 
 <script>
 const ADMIN_TOKEN_KEY = 'beyouartAdminApiToken';
-const SECONDARY_PORTAL_CODE = '22222';
+const MAX_PASSWORD_LENGTH = 20;
 let input = '';
+let isCheckingPassword = false;
 
 const passwordDisplay = document.getElementById('passwordDisplay');
 const errorMessage = document.getElementById('errorMessage');
@@ -219,7 +213,6 @@ const clearButton = document.getElementById('clearButton');
 const enterButton = document.getElementById('enterButton');
 const loginPanel = document.getElementById('loginPanel');
 const adminPanel = document.getElementById('adminPanel');
-const constructionPanel = document.getElementById('constructionPanel');
 const ipTableBody = document.getElementById('ipTableBody');
 
 const getToken = () => sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
@@ -299,33 +292,42 @@ const showAdminPanel = () => {
   input = '';
   updateDisplay();
   loginPanel.style.display = 'none';
-  constructionPanel.style.display = 'none';
   adminPanel.style.display = 'block';
-};
-
-const showConstructionPanel = () => {
-  errorMessage.textContent = '';
-  statusMessage.textContent = '';
-  input = '';
-  updateDisplay();
-  loginPanel.style.display = 'none';
-  adminPanel.style.display = 'none';
-  constructionPanel.style.display = 'block';
 };
 
 const showLoginPanel = () => {
   adminPanel.style.display = 'none';
-  constructionPanel.style.display = 'none';
   loginPanel.style.display = 'block';
 };
 
-const unlockAdmin = async () => {
-  if (input === SECONDARY_PORTAL_CODE) {
-    clearToken();
-    showConstructionPanel();
+const setCheckingState = (checking) => {
+  isCheckingPassword = checking;
+  enterButton.disabled = checking;
+};
+
+const appendDigit = (digit) => {
+  if (isCheckingPassword || input.length >= MAX_PASSWORD_LENGTH) {
     return;
   }
 
+  input += digit;
+  errorMessage.textContent = '';
+  statusMessage.textContent = '';
+  updateDisplay();
+};
+
+const unlockAdmin = async () => {
+  if (isCheckingPassword) {
+    return;
+  }
+
+  if (!input) {
+    errorMessage.textContent = 'Enter your admin password first.';
+    statusMessage.textContent = '';
+    return;
+  }
+
+  setCheckingState(true);
   statusMessage.textContent = 'Checking password...';
   errorMessage.textContent = '';
 
@@ -354,6 +356,8 @@ const unlockAdmin = async () => {
   } catch (error) {
     errorMessage.textContent = 'Could not reach backend.';
     statusMessage.textContent = '';
+  } finally {
+    setCheckingState(false);
   }
 };
 
@@ -362,17 +366,16 @@ const unlockAdmin = async () => {
   button.type = 'button';
   button.textContent = digit;
   button.addEventListener('click', () => {
-    if (input.length < 20) {
-      input += digit;
-      errorMessage.textContent = '';
-      statusMessage.textContent = '';
-      updateDisplay();
-    }
+    appendDigit(digit);
   });
   keypad.appendChild(button);
 });
 
 clearButton.addEventListener('click', () => {
+  if (isCheckingPassword) {
+    return;
+  }
+
   input = '';
   errorMessage.textContent = '';
   statusMessage.textContent = '';
@@ -380,6 +383,29 @@ clearButton.addEventListener('click', () => {
 });
 
 enterButton.addEventListener('click', unlockAdmin);
+
+document.addEventListener('keydown', (event) => {
+  if (loginPanel.style.display === 'none') {
+    return;
+  }
+
+  if (/^[0-9]$/.test(event.key)) {
+    appendDigit(event.key);
+    return;
+  }
+
+  if (event.key === 'Backspace' && !isCheckingPassword) {
+    input = input.slice(0, -1);
+    errorMessage.textContent = '';
+    statusMessage.textContent = '';
+    updateDisplay();
+    return;
+  }
+
+  if (event.key === 'Enter') {
+    unlockAdmin();
+  }
+});
 
 (async () => {
   updateDisplay();
