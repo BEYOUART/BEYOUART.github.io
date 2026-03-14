@@ -12,6 +12,10 @@ ADMIN_PASSWORD_HASH=<sha256-hex> npm start
 
 Alternative:
 
+This project uses a small Node.js backend instead of client-only admin logic.
+
+## Run locally
+
 ```bash
 ADMIN_PASSWORD=your-strong-password npm start
 ```
@@ -31,6 +35,14 @@ By default this runs on `http://localhost:8000`.
 - Rotate your password immediately if it was ever shared.
 - The known old code `68952026` is blocked from being used as server password.
 - In production, provide secrets via secure environment configuration.
+- `ADMIN_PASSWORD` (**required**): admin keypad password. Do not commit this value.
+- `PORT` (optional): server port (default `8000`)
+- `HOST` (optional): bind host (default `0.0.0.0`)
+
+## Security note
+
+- Never place real passwords/secrets in repository files, PR descriptions, or public docs.
+- In production, provide `ADMIN_PASSWORD` via secure environment configuration.
 
 ## Backend API
 

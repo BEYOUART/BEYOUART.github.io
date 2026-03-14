@@ -45,6 +45,13 @@ const getAdminHash = () => {
 };
 
 const ADMIN_HASH = getAdminHash();
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+if (!ADMIN_PASSWORD) {
+  throw new Error('ADMIN_PASSWORD must be set in environment variables.');
+}
+
+const ADMIN_HASH = crypto.createHash('sha256').update(ADMIN_PASSWORD).digest();
 const SESSION_TTL_MS = 10 * 60 * 1000;
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MS = 5 * 60 * 1000;
