@@ -8,12 +8,14 @@ Preferred (do not expose plaintext in process env/history):
 
 ```bash
 ADMIN_PASSWORD_HASH=<sha256-hex> npm start
+# legacy alias also supported: ADMIN_CODE_HASH=<sha256-hex> npm start
 ```
 
 Alternative:
 
 ```bash
 ADMIN_PASSWORD=your-strong-password npm start
+# legacy alias also supported: ADMIN_CODE=your-strong-password npm start
 ```
 
 By default this runs on `http://localhost:8000`.
@@ -22,7 +24,8 @@ By default this runs on `http://localhost:8000`.
 
 - `ADMIN_PASSWORD_HASH` (**preferred**): SHA-256 hex of your admin password.
 - `ADMIN_PASSWORD` (optional fallback): plaintext admin password.
-- If both `ADMIN_PASSWORD_HASH` and `ADMIN_PASSWORD` are set, they must match the same password or startup will fail with a clear error.
+- Legacy aliases also supported: `ADMIN_CODE_HASH` (same as `ADMIN_PASSWORD_HASH`) and `ADMIN_CODE` (same as `ADMIN_PASSWORD`).
+- If both plaintext and hash are provided (including alias combinations), they must match the same password or startup will fail with a clear error.
 - `PORT` (optional): server port (default `8000`)
 - `HOST` (optional): bind host (default `0.0.0.0`)
 
