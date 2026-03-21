@@ -2,6 +2,8 @@
 
 This project uses a Node.js backend for visitor tracking and protected admin access.
 
+If the storefront is hosted on a different domain than the Node backend (for example GitHub Pages for the site and Render for the API), open `admin.html`, enter the backend origin in the new **Backend URL** field, and save it before logging in.
+
 ## Run locally
 
 Preferred (do not expose plaintext in process env/history):
@@ -42,3 +44,9 @@ By default this runs on `http://localhost:8000`.
 - `POST /api/admin/login` — returns bearer token when password is correct
 - `GET /api/admin/visitors` — returns visitor list (requires bearer token)
 - `POST /api/admin/logout` — invalidates current bearer token
+
+## Separate frontend/backend hosting
+
+- The admin page stores a backend origin in browser `localStorage` under `beyouartApiBaseUrl`.
+- Leave the field blank / click **Use this website** if the HTML site and Node backend are on the same domain.
+- If the HTML site is on `beyouart.com` but the backend is on Render, save the Render service origin (for example `https://your-service.onrender.com`) in the admin page before trying to log in.

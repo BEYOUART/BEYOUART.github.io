@@ -87,6 +87,40 @@ h1 { font-size: 28px; text-align: center; margin-bottom: 16px; }
   margin-bottom: 14px;
 }
 
+.backend-settings {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.backend-settings label {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+#backendUrlInput {
+  width: 100%;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+}
+
+.backend-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.backend-actions button {
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+
 .keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -175,6 +209,14 @@ footer {
   <section id="loginPanel" class="card">
     <h1>Admin Access</h1>
     <p class="subtitle">Enter your admin password (type it or use the keypad).</p>
+    <div class="backend-settings">
+      <label for="backendUrlInput">Backend URL (use your Render service URL if this page is hosted somewhere else).</label>
+      <input id="backendUrlInput" type="url" inputmode="url" placeholder="https://your-render-service.onrender.com">
+      <div class="backend-actions">
+        <button id="saveBackendButton" type="button">Save backend URL</button>
+        <button id="resetBackendButton" type="button">Use this website</button>
+      </div>
+    </div>
     <div id="passwordDisplay" class="display"></div>
     <input id="passwordInput" type="password" autocomplete="current-password" placeholder="Type admin password" maxlength="128">
 
@@ -211,10 +253,14 @@ footer {
 
 <script>
 const ADMIN_TOKEN_KEY = 'beyouartAdminApiToken';
+const API_BASE_KEY = 'beyouartApiBaseUrl';
 const MAX_PASSWORD_LENGTH = 128;
 let input = '';
 let isCheckingPassword = false;
 
+const backendUrlInput = document.getElementById('backendUrlInput');
+const saveBackendButton = document.getElementById('saveBackendButton');
+const resetBackendButton = document.getElementById('resetBackendButton');
 const passwordDisplay = document.getElementById('passwordDisplay');
 const passwordInput = document.getElementById('passwordInput');
 const errorMessage = document.getElementById('errorMessage');
@@ -229,6 +275,32 @@ const ipTableBody = document.getElementById('ipTableBody');
 const getToken = () => sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
 const setToken = (token) => sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
 const clearToken = () => sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+const getStoredApiBase = () => localStorage.getItem(API_BASE_KEY) || '';
+const clearStoredApiBase = () => localStorage.removeItem(API_BASE_KEY);
+
+const normalizeApiBase = (value) => {
+  const trimmed = String(value || '').trim();
+
+  if (!trimmed) {
+    return '';
+  }
+
+  const url = new URL(trimmed);
+  return url.origin.replace(/\/$/, '');
+};
+
+const getApiBase = () => {
+  const stored = getStoredApiBase();
+  return stored || window.location.origin;
+};
+
+const getApiUrl = (pathname) => `${getApiBase()}${pathname}`;
+
+const updateBackendInput = () => {
+  const stored = getStoredApiBase();
+  backendUrlInput.value = stored;
+  backendUrlInput.placeholder = window.location.origin;
+};
 
 const updateDisplay = () => {
   passwordDisplay.textContent = input ? '• '.repeat(input.length).trim() : 'Enter password';
@@ -252,11 +324,12 @@ const loadIpTable = async () => {
   }
 
   try {
-    const response = await fetch('/api/admin/visitors', {
+    const response = await fetch(getApiUrl('/api/admin/visitors'), {
       headers: {
         Authorization: `Bearer ${token}`
       },
-      cache: 'no-store'
+      cache: 'no-store',
+      credentials: 'omit'
     });
 
     if (response.status === 401) {
@@ -365,18 +438,19 @@ const unlockAdmin = async () => {
   errorMessage.textContent = '';
 
   try {
-    const response = await fetch('/api/admin/login', {
+    const response = await fetch(getApiUrl('/api/admin/login'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ password: input })
+      body: JSON.stringify({ password: input }),
+      credentials: 'omit'
     });
 
     const payload = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      errorMessage.textContent = payload.error || 'Access denied.';
+      errorMessage.textContent = payload.error || `Access denied. Check that the backend URL is correct: ${getApiBase()}`;
       statusMessage.textContent = '';
       input = '';
       updateDisplay();
@@ -387,7 +461,7 @@ const unlockAdmin = async () => {
     showAdminPanel();
     await loadIpTable();
   } catch (error) {
-    errorMessage.textContent = 'Could not reach backend.';
+    errorMessage.textContent = `Could not reach backend at ${getApiBase()}.`;
     statusMessage.textContent = '';
   } finally {
     setCheckingState(false);
@@ -417,6 +491,31 @@ bindButtonPress(clearButton, () => {
 
 bindButtonPress(enterButton, unlockAdmin);
 
+bindButtonPress(saveBackendButton, () => {
+  try {
+    const normalized = normalizeApiBase(backendUrlInput.value);
+    localStorage.setItem(API_BASE_KEY, normalized);
+    clearToken();
+    statusMessage.textContent = `Saved backend URL: ${normalized}`;
+    errorMessage.textContent = '';
+    input = '';
+    updateDisplay();
+  } catch (error) {
+    errorMessage.textContent = 'Enter a full backend URL starting with https://';
+    statusMessage.textContent = '';
+  }
+});
+
+bindButtonPress(resetBackendButton, () => {
+  clearStoredApiBase();
+  clearToken();
+  updateBackendInput();
+  statusMessage.textContent = `Using this website for the backend: ${window.location.origin}`;
+  errorMessage.textContent = '';
+  input = '';
+  updateDisplay();
+});
+
 passwordInput.addEventListener('input', (event) => {
   if (isCheckingPassword) {
     return;
@@ -436,6 +535,7 @@ passwordInput.addEventListener('keydown', (event) => {
 });
 
 (async () => {
+  updateBackendInput();
   updateDisplay();
   passwordInput.focus();
   const hasSession = await loadIpTable();
@@ -443,6 +543,9 @@ passwordInput.addEventListener('keydown', (event) => {
     showAdminPanel();
   } else {
     showLoginPanel();
+    if (getStoredApiBase()) {
+      statusMessage.textContent = `Using saved backend URL: ${getStoredApiBase()}`;
+    }
   }
 })();
 </script>
