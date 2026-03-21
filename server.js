@@ -11,8 +11,8 @@ const DATA_DIR = path.join(__dirname, 'data');
 const DATA_FILE = path.join(DATA_DIR, 'visitors.json');
 
 const DEFAULT_BLOCKED_PASSWORDS = new Set(['68952026']);
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
-const ADMIN_PASSWORD_HASH_HEX = process.env.ADMIN_PASSWORD_HASH;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.ADMIN_CODE;
+const ADMIN_PASSWORD_HASH_HEX = process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_CODE_HASH;
 
 const parseHashHex = (value) => {
   if (!value || typeof value !== 'string') {
