@@ -13,7 +13,7 @@ const DATA_FILE = path.join(DATA_DIR, 'visitors.json');
 const DEFAULT_BLOCKED_PASSWORDS = new Set(['68952026']);
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.ADMIN_CODE;
 const ADMIN_PASSWORD_HASH_HEX = process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_CODE_HASH;
-const ADMIN_ALLOWED_IPS = process.env.ADMIN_ALLOWED_IPS || process.env.ADMIN_IP_ALLOWLIST || '146.75.136.129';
+const ADMIN_ALLOWED_IPS = process.env.ADMIN_ALLOWED_IPS || process.env.ADMIN_IP_ALLOWLIST || '24.130.18.184';
 
 const parseHashHex = (value) => {
   if (!value || typeof value !== 'string') {
