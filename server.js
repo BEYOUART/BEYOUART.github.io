@@ -13,6 +13,7 @@ const DATA_FILE = path.join(DATA_DIR, 'visitors.json');
 const DEFAULT_BLOCKED_PASSWORDS = new Set(['68952026']);
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.ADMIN_CODE;
 const ADMIN_PASSWORD_HASH_HEX = process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_CODE_HASH;
+const ADMIN_ALLOWED_IPS = process.env.ADMIN_ALLOWED_IPS || process.env.ADMIN_IP_ALLOWLIST || '24.130.18.184';
 
 const parseHashHex = (value) => {
   if (!value || typeof value !== 'string') {
@@ -62,6 +63,12 @@ const ADMIN_HASH = getAdminHash();
 const SESSION_TTL_MS = 10 * 60 * 1000;
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_MS = 5 * 60 * 1000;
+const ADMIN_ALLOWED_IP_SET = new Set(
+  ADMIN_ALLOWED_IPS
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
 
 const sessions = new Map();
 const loginState = new Map();
@@ -140,6 +147,40 @@ const getClientIp = (req) => {
   return fromProxy || req.socket.remoteAddress || 'unknown';
 };
 
+const normalizeIp = (ip) => {
+  if (!ip) {
+    return '';
+  }
+
+  const trimmed = String(ip).trim();
+  if (trimmed.startsWith('::ffff:')) {
+    return trimmed.slice(7);
+  }
+
+  return trimmed;
+};
+
+const isAdminIpAllowed = (ip) => {
+  if (!ADMIN_ALLOWED_IP_SET.size) {
+    return true;
+  }
+
+  const normalized = normalizeIp(ip);
+  if (ADMIN_ALLOWED_IP_SET.has(normalized)) {
+    return true;
+  }
+
+  if (normalized === '::1' && ADMIN_ALLOWED_IP_SET.has('127.0.0.1')) {
+    return true;
+  }
+
+  if (normalized === '127.0.0.1' && ADMIN_ALLOWED_IP_SET.has('::1')) {
+    return true;
+  }
+
+  return false;
+};
+
 const cleanOldSessions = () => {
   const now = Date.now();
   for (const [token, expiresAt] of sessions.entries()) {
@@ -211,6 +252,7 @@ const server = http.createServer(async (req, res) => {
 
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = decodeURIComponent(url.pathname);
+  const ip = getClientIp(req);
 
   if (req.method === 'POST' && pathname === '/api/track') {
     const ip = getClientIp(req);
@@ -227,7 +269,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'POST' && pathname === '/api/admin/login') {
-    const ip = getClientIp(req);
+    if (!isAdminIpAllowed(ip)) {
+      json(res, 403, { error: 'Admin access from this IP is not allowed.' });
+      return;
+    }
+
     const state = loginState.get(ip) || { attempts: 0, lockedUntil: 0 };
 
     if (Date.now() < state.lockedUntil) {
@@ -265,6 +311,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'GET' && pathname === '/api/admin/visitors') {
+    if (!isAdminIpAllowed(ip)) {
+      json(res, 403, { error: 'Admin access from this IP is not allowed.' });
+      return;
+    }
+
     if (!requireAuth(req, res)) {
       return;
     }
@@ -283,6 +334,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'POST' && pathname === '/api/admin/logout') {
+    if (!isAdminIpAllowed(ip)) {
+      json(res, 403, { error: 'Admin access from this IP is not allowed.' });
+      return;
+    }
+
     const authHeader = req.headers.authorization || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
     if (token) {
@@ -294,6 +350,11 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'GET') {
+    if (pathname === '/admin.html' && !isAdminIpAllowed(ip)) {
+      json(res, 403, { error: 'Admin access from this IP is not allowed.' });
+      return;
+    }
+
     await serveStatic(req, res, pathname);
     return;
   }
