@@ -30,6 +30,8 @@ By default this runs on `http://localhost:8000`.
 - If both plaintext and hash are provided (including alias combinations), they must match the same password or startup will fail with a clear error.
 - `PORT` (optional): server port (default `8000`)
 - `HOST` (optional): bind host (default `0.0.0.0`)
+- `ADMIN_ALLOWED_IPS` (optional): comma-separated IP allowlist for admin page + admin APIs (example: `ADMIN_ALLOWED_IPS=203.0.113.10,198.51.100.7`). If unset, it defaults to `146.75.136.129`.
+- `ADMIN_IP_ALLOWLIST` (optional legacy alias): same behavior as `ADMIN_ALLOWED_IPS`.
 
 ## Security notes
 
