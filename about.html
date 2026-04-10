@@ -46,18 +46,33 @@ nav a:hover {
 }
 
 .about-wrap {
-  max-width: 1100px;
+  max-width: 760px;
   margin: 60px auto 100px;
   padding: 0 20px;
-  display: flex;
-  justify-content: center;
 }
 
-.about-wrap img {
-  width: 100%;
-  max-width: 900px;
+.about-card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
   border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  padding: 34px 28px;
+}
+
+.about-card h1 {
+  font-size: 34px;
+  margin-bottom: 14px;
+  letter-spacing: 0.3px;
+}
+
+.about-card p {
+  font-size: 17px;
+  line-height: 1.7;
+  margin-bottom: 14px;
+}
+
+.about-card p:last-child {
+  margin-bottom: 0;
 }
 
 footer {
@@ -88,7 +103,12 @@ footer {
 </nav>
 
 <div class="about-wrap">
-  <img src="Untitled1.PNG" alt="About Me">
+  <section class="about-card" aria-label="About Me text">
+    <h1>Our Story</h1>
+    <p>Be You Art is a kid-made art company and website. We are here to make art and share it with the world.</p>
+    <p>Be You Art started with an axolotl drawing, and then I wanted to draw more animals I love. I made more animal art, and then realized I could sell it and donate part of the money to help endangered animals.</p>
+    <p>Next, I asked my older brother to make me a website so we could sell it together. Now, you can purchase customizable art for birthdays and holidays or just because you love animals too! And that&rsquo;s our story.</p>
+  </section>
 </div>
 
 <footer>
