@@ -13,7 +13,9 @@ body {
   font-family: 'Inter', sans-serif;
   background: #ffffff;
   color: #111;
-  padding-bottom: 90px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 nav {
@@ -43,6 +45,10 @@ nav a {
 
 nav a:hover {
   opacity: 1;
+}
+
+.page-content {
+  flex: 1;
 }
 
 .about-wrap {
@@ -76,17 +82,14 @@ nav a:hover {
 }
 
 footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
   width: 100%;
+  margin-top: auto;
   text-align: center;
   padding: 18px 20px;
   font-size: 16px;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.95);
   border-top: 1px solid rgba(0,0,0,0.08);
-  z-index: 1000;
 }
 </style>
 </head>
@@ -98,10 +101,10 @@ footer {
     <a href="index.html">HOME</a>
     <a href="about.html">ABOUT ME</a>
     <a href="contact.html">CONTACT</a>
-    <a href="admin.html">ADMIN</a>
   </div>
 </nav>
 
+<main class="page-content">
 <div class="about-wrap">
   <section class="about-card" aria-label="About Me text">
     <h1>Our Story</h1>
@@ -110,6 +113,7 @@ footer {
     <p>Next, I asked my older brother to make me a website so we could sell it together. Now, you can purchase customizable art for birthdays and holidays or just because you love animals too! And that&rsquo;s our story.</p>
   </section>
 </div>
+</main>
 
 <footer>
 Web site programed and produced By:REDPANDA2025@icloud.com

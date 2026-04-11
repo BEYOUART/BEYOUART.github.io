@@ -13,7 +13,9 @@ body {
   font-family: 'Inter', sans-serif;
   background: #ffffff;
   color: #111;
-  padding-bottom: 90px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 nav {
@@ -45,6 +47,10 @@ nav a:hover {
   opacity: 1;
 }
 
+.page-content {
+  flex: 1;
+}
+
 .contact-wrap {
   max-width: 900px;
   margin: 120px auto 160px;
@@ -63,17 +69,14 @@ nav a:hover {
 }
 
 footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
   width: 100%;
+  margin-top: auto;
   text-align: center;
   padding: 18px 20px;
   font-size: 16px;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.95);
   border-top: 1px solid rgba(0,0,0,0.08);
-  z-index: 1000;
 }
 </style>
 </head>
@@ -85,13 +88,14 @@ footer {
     <a href="index.html">HOME</a>
     <a href="about.html">ABOUT ME</a>
     <a href="contact.html">CONTACT</a>
-    <a href="admin.html">ADMIN</a>
   </div>
 </nav>
 
+<main class="page-content">
 <div class="contact-wrap">
   <p>For questions or support contact us at <a href="mailto:beyouartsupport@gmail.com">beyouartsupport@gmail.com</a>.</p>
 </div>
+</main>
 
 <footer>
 Web site programed and produced By:REDPANDA2025@icloud.com

@@ -13,7 +13,9 @@ body {
   font-family: 'Inter', sans-serif;
   background: #ffffff;
   color: #111;
-  padding-bottom: 90px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ===== Nav Bar ===== */
@@ -45,6 +47,10 @@ nav a {
 
 nav a:hover {
   opacity: 1;
+}
+
+.page-content {
+  flex: 1;
 }
 
 /* ===== Header ===== */
@@ -156,17 +162,14 @@ button:hover {
 }
 
 footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
   width: 100%;
+  margin-top: auto;
   text-align: center;
   padding: 18px 20px;
   font-size: 16px;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.95);
   border-top: 1px solid rgba(0,0,0,0.08);
-  z-index: 1000;
 }
 
 @keyframes logoIntro {
@@ -186,16 +189,17 @@ footer {
     <a href="index.html">HOME</a>
     <a href="about.html">ABOUT ME</a>
     <a href="contact.html">CONTACT</a>
-    <a href="admin.html">ADMIN</a>
   </div>
 </nav>
 
+<main class="page-content">
 <header>
   <img src="Untitlvvv.png" alt="beyouart Logo" class="logo">
   <div class="tagline">express yourself</div>
 </header>
 
 <div class="container" id="productContainer"></div>
+</main>
 
 <footer>
 Web site programed and produced By:REDPANDA2025@icloud.com
