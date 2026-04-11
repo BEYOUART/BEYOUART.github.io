@@ -350,11 +350,6 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'GET') {
-    if (pathname === '/admin.html' && !isAdminIpAllowed(ip)) {
-      json(res, 403, { error: 'Admin access from this IP is not allowed.' });
-      return;
-    }
-
     await serveStatic(req, res, pathname);
     return;
   }
