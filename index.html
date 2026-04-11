@@ -13,7 +13,9 @@ body {
   font-family: 'Inter', sans-serif;
   background: #ffffff;
   color: #111;
-  padding-bottom: 90px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ===== Nav Bar ===== */
@@ -156,17 +158,14 @@ button:hover {
 }
 
 footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
   width: 100%;
+  margin-top: auto;
   text-align: center;
   padding: 18px 20px;
   font-size: 16px;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.95);
   border-top: 1px solid rgba(0,0,0,0.08);
-  z-index: 1000;
 }
 
 @keyframes logoIntro {
