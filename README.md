@@ -1,8 +1,6 @@
 # beyouart website
 
-This project uses a Node.js backend for visitor tracking and protected admin access.
-
-If the storefront is hosted on a different domain than the Node backend (for example GitHub Pages for the site and Render for the API), open `admin.html`, enter the backend origin in the new **Backend URL** field, and save it before logging in.
+This project uses a Node.js backend for visitor tracking and protected admin APIs.
 
 ## Run locally
 
@@ -30,7 +28,7 @@ By default this runs on `http://localhost:8000`.
 - If both plaintext and hash are provided (including alias combinations), they must match the same password or startup will fail with a clear error.
 - `PORT` (optional): server port (default `8000`)
 - `HOST` (optional): bind host (default `0.0.0.0`)
-- `ADMIN_ALLOWED_IPS` (optional): comma-separated IP allowlist for admin page + admin APIs (example: `ADMIN_ALLOWED_IPS=203.0.113.10,198.51.100.7`). If unset, it defaults to `24.130.18.184`.
+- `ADMIN_ALLOWED_IPS` (optional): comma-separated IP allowlist for admin APIs (example: `ADMIN_ALLOWED_IPS=203.0.113.10,198.51.100.7`). If unset, it defaults to `24.130.18.184`.
 - `ADMIN_IP_ALLOWLIST` (optional legacy alias): same behavior as `ADMIN_ALLOWED_IPS`.
 
 ## Security notes
@@ -47,8 +45,3 @@ By default this runs on `http://localhost:8000`.
 - `GET /api/admin/visitors` — returns visitor list (requires bearer token)
 - `POST /api/admin/logout` — invalidates current bearer token
 
-## Separate frontend/backend hosting
-
-- The admin page stores a backend origin in browser `localStorage` under `beyouartApiBaseUrl`.
-- Leave the field blank / click **Use this website** if the HTML site and Node backend are on the same domain.
-- If the HTML site is on `beyouart.com` but the backend is on Render, save the Render service origin (for example `https://your-service.onrender.com`) in the admin page before trying to log in.
